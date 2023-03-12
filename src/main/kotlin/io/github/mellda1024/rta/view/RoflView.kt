@@ -1,6 +1,7 @@
 package io.github.mellda1024.rta.view
 
 import io.github.mellda1024.rta.controller.LoLClientController
+import io.github.mellda1024.rta.controller.RoflController
 import io.github.mellda1024.rta.core.json.impl.ReplayToolDataManager
 import io.github.mellda1024.rta.core.rofl.Rofl
 import javafx.application.Platform
@@ -23,6 +24,7 @@ class RoflView(rofl: Rofl) : View("ReplayToolAdvanced") {
 
 class RoflControlView : View() {
     private val controller: LoLClientController by inject()
+    private val roflController : RoflController by inject()
 
     override val root = hbox(20) {
 
@@ -58,6 +60,7 @@ class RoflControlView : View() {
                         controller.selectedLoLClient.value!!
                     )
                     ReplayToolDataManager.updateRecentRoflFile(controller.selectedRofl.value.file)
+                    roflController.updateRecentRofl()
                     Thread.sleep(1000)
                     Platform.runLater {
                         controller.executeButton.value = "리플레이 실행"
@@ -81,6 +84,7 @@ class RoflControlView : View() {
                         else "저장에 실패하였습니다."
                     }
                     ReplayToolDataManager.updateRecentRoflFile(controller.selectedRofl.value.file)
+                    roflController.updateRecentRofl()
                     Thread.sleep(1000)
                     Platform.runLater {
                         controller.replayBatButton.value = "Replay.bat으로 저장"

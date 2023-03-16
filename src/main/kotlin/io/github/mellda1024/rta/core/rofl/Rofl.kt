@@ -17,7 +17,6 @@ data class Rofl(
     val name: String,
     val path: String
 ) {
-
     constructor(file: File) : this(file, file.name, file.path)
 
     /**
@@ -29,26 +28,31 @@ data class Rofl(
 
     val version: String
         get() {
-            val temp = ByteArray(4)
-            val riotCheck = byteArrayOf(82, 73, 79, 84)
-            val versionByteArray = ByteArray(64)
-            val fis = FileInputStream(file)
-            fis.read(temp)
-            if (!riotCheck.contentEquals(temp)) {
+            try {
+                val temp = ByteArray(4)
+                val riotCheck = byteArrayOf(82, 73, 79, 84)
+                val fis = FileInputStream(file)
+                fis.read(temp)
+                if (!riotCheck.contentEquals(temp)) {
+                    fis.close()
+                    return "null"
+                }
+
+                val versionByteArray = ByteArray(64)
+                fis.skip(284)
+                fis.read(versionByteArray)
+                val versionRaw = String(versionByteArray, StandardCharsets.UTF_8)
+                val regex = Pattern.compile("\"gameVersion\":\"([0-9.]*)\",")
+                val match = regex.matcher(versionRaw)
+                if (match.find()) {
+                    fis.close()
+                    return match.group(1)
+                }
                 fis.close()
                 return "null"
+            } catch(e : IOException) {
+                return "null"
             }
-            val regex = Pattern.compile("\"gameVersion\":\"([0-9.]*)\",")
-            fis.skip(284)
-            fis.read(versionByteArray)
-            val versionRaw = String(versionByteArray, StandardCharsets.UTF_8)
-            val match = regex.matcher(versionRaw)
-            if (match.find()) {
-                fis.close()
-                return match.group(1)
-            }
-            fis.close()
-            return "null"
         }
 
     val createdDate: String

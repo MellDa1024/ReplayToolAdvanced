@@ -19,7 +19,7 @@ class LoLClientController : Controller() {
 
     val replayBatButton = SimpleStringProperty("Replay.bat으로 저장")
     val executeButton = SimpleStringProperty("리플레이 실행")
-    lateinit var version: String
+    private lateinit var version: String
 
 
     fun init(rofl: Rofl) {
@@ -40,8 +40,8 @@ class LoLClientController : Controller() {
         selectedLoLClient.value = file
     }
 
-    fun updateLoLClientInfo(file: File?) {
-        if (file == null) selectedLoLClientInfo.value = "클리어언트의 경로 : 없음"
-        else selectedLoLClientInfo.value = "클리어언트의 경로 : ${file.path}"
+    private fun updateLoLClientInfo(file: File?) {
+        if (file == null) selectedLoLClientInfo.value = "클라이언트의 경로 : 없음"
+        else selectedLoLClientInfo.value = "클라이언트의 경로 : ${file.path}"
     }
 }

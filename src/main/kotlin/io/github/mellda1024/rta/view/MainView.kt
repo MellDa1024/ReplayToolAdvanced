@@ -1,9 +1,14 @@
 package io.github.mellda1024.rta.view
 
+import io.github.mellda1024.rta.app.Styles.Companion.fontedButton
+import io.github.mellda1024.rta.app.Styles.Companion.fontedText
 import io.github.mellda1024.rta.app.Styles.Companion.menuButton
+import io.github.mellda1024.rta.app.Styles.Companion.roflColumn
+import io.github.mellda1024.rta.app.Styles.Companion.searchField
 import io.github.mellda1024.rta.controller.RoflController
 import io.github.mellda1024.rta.core.json.impl.ReplayToolDataManager
 import io.github.mellda1024.rta.core.rofl.Rofl
+import io.github.mellda1024.rta.util.tryOpenRofl
 import javafx.beans.value.ObservableValue
 import javafx.geometry.Pos
 import javafx.scene.control.Label
@@ -12,7 +17,7 @@ import tornadofx.*
 
 class MainView : View("ReplayToolAdvanced") {
     override val root = borderpane {
-        top<TopView>()
+        top<LogoView>()
         left<LeftView>()
         right<RightView>()
     }
@@ -29,28 +34,37 @@ class RoflListView : View() {
 
         @Suppress("Deprecation") //uh oh
         tableview(controller.filteredList) {
-            placeholder = Label("Rofl 파일이 없습니다.")
+
+            placeholder = Label("Rofl 파일이 없습니다.").addClass(fontedText)
             prefWidth = 580.0
             readonlyColumn("파일 이름", Rofl::name) {
-                fixedWidth(290.0)
+                addClass(roflColumn)
+                fixedWidth(275.0)
                 impl_setReorderable(false)
             }
             readonlyColumn("클라이언트 버전", Rofl::version) {
+                addClass(roflColumn)
                 fixedWidth(120.0)
                 impl_setReorderable(false)
             }
             readonlyColumn("생성 일자", Rofl::createdDate) {
-                fixedWidth(155.0)
+                addClass(roflColumn)
+                fixedWidth(170.0)
                 impl_setReorderable(false)
             }
 
-            onUserSelect {
+            onUserSelect(clickCount = 1) {
                 controller.selectionUpdate(it)
+            }
+
+            onUserSelect {
+                tryOpenRofl(it)
             }
         }
 
         label {
-            paddingTop = 6.0
+            addClass(fontedText)
+            paddingTop = 5.0
             bind(controller.selectedRoflName)
         }
     }
@@ -66,12 +80,12 @@ class LeftView : View() {
 class RightView : View() {
     override val root = borderpane {
         paddingRight = 2.0
-        top<RightTopView>()
+        top<ControlButtonView>()
         bottom<InfoButtonView>()
     }
 }
 
-class RightTopView : View() {
+class ControlButtonView : View() {
     private val controller: RoflController by inject()
 
     override val root = vbox(8) {
@@ -84,11 +98,7 @@ class RightTopView : View() {
             addClass(menuButton)
             disableProperty().bind(controller.selectedRofl.isNull)
             setOnAction {
-                val rofl = controller.selectedRofl.value
-                if (rofl == null) RoflErrorView()
-                    .openWindow(resizable = false, modality = Modality.APPLICATION_MODAL)
-                else RoflView(rofl)
-                    .openWindow(resizable = false, modality = Modality.APPLICATION_MODAL)
+                tryOpenRofl(controller.selectedRofl.value)
             }
         }
 
@@ -96,22 +106,20 @@ class RightTopView : View() {
             addClass(menuButton)
             disableProperty().bind(!controller.hasRecentRofl)
             setOnAction {
-                val rofl = ReplayToolDataManager.getRecentRofl()
-                if (rofl == null) RoflErrorView()
-                    .openWindow(resizable = false, modality = Modality.APPLICATION_MODAL)
-                else RoflView(rofl)
-                    .openWindow(resizable = false, modality = Modality.APPLICATION_MODAL)
+                tryOpenRofl(ReplayToolDataManager.getRecentRofl())
             }
         }
 
         button("폴더 설정") {
             addClass(menuButton)
             setOnAction {
+                isDisable = true
                 val folder = chooseDirectory("폴더를 선택해주세요.", ReplayToolDataManager.getRecentRoflFolder())
                 if (folder != null) {
                     controller.updateFolder(folder)
                     controller.selectionUpdate(null)
                 }
+                isDisable = false
             }
         }
     }
@@ -129,7 +137,7 @@ class InfoButtonView : View() {
     }
 }
 
-class TopView : View() {
+class LogoView : View() {
     override val root = vbox {
         paddingTop = 10.0
         imageview("/ReplayToolAdvancedLogo.png") {
@@ -150,14 +158,19 @@ class SearchView : View() {
     private val controller: RoflController by inject()
 
     override val root = vbox {
+        paddingBottom = 5.0
+
         textfield {
-            prefWidth = 200.0
+            addClass(searchField)
+
             promptText = "검색"
             parent.requestFocus()
 
             textProperty().addListener { _: ObservableValue<out String>, _: String, newValue: String ->
                 controller.filteredList.predicate = {
                     it.name.contains(newValue, true)
+                            || it.version.contains(newValue, true)
+                            || it.createdDate.contains(newValue, true)
                 }
             }
         }
@@ -170,9 +183,11 @@ class RefreshView : View() {
     override val root = vbox {
 
         paddingLeft = 10.0
-        paddingBottom = 5.0
+        paddingTop = 3.0
 
         button("새로 고침") {
+            addClass(fontedButton)
+
             setOnAction {
                 controller.reload()
                 controller.roflValidCheck()

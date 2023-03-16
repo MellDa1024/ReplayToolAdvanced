@@ -7,6 +7,7 @@ import tornadofx.*
 
 class MainApp : App(MainView::class, Styles::class) {
     override fun start(stage: Stage) {
+        System.setProperty("prism.lcdtext", "false")
         with(stage) {
             isResizable = false
             addStageIcon(Image("/ReplayToolAdvancedIcon.png"))
